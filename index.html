@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Video con Progreso y Reproducción</title>
+</head>
+<body>
+    <h1>Subir Video con Progreso y Reproducción</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="videoInput" accept="video/*">
+        <button type="submit">Subir Video</button>
+    </form>
+
+    <h2>Progreso de Subida:</h2>
+    <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+    <p id="progressText">0%</p>
+
+    <h2>Reproducción del Video:</h2>
+    <video id="videoPlayer" controls style="display:none; width: 100%; max-width: 600px;">
+        Tu navegador no soporta la etiqueta de video.
+    </video>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevenir el envío del formulario por defecto
+
+            const fileInput = document.getElementById('videoInput');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('video', file);
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.lengthComputable) {
+                        const percentComplete = (event.loaded / event.total) * 100;
+                        document.getElementById('progressBar').value = percentComplete;
+                        document.getElementById('progressText').textContent = Math.round(percentComplete) + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', function() {
+                    if (xhr.status === 200) {
+                        // Suponiendo que el servidor devuelve la URL del video subido
+                        const videoURL = URL.createObjectURL(file);
+
+                        const videoPlayer = document.getElementById('videoPlayer');
+                        videoPlayer.src = videoURL;
+                        videoPlayer.style.display = 'block';
+                        videoPlayer.load();
+                        videoPlayer.play();
+                    } else {
+                        alert('Error al subir el video.');
+                    }
+                });
+
+                xhr.addEventListener('error', function() {
+                    alert('Error en la conexión.');
+                });
+
+                // Enviar el archivo al servidor (aquí deberías colocar la URL del servidor donde se maneje la subida)
+                xhr.open('POST', '/ruta/a/tu/servidor', true);
+                xhr.send(formData);
+            } else {
+                alert('Por favor, selecciona un video.');
+            }
+        });
+    </script>
+</body>
+</html>
